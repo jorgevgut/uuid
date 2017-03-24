@@ -12,9 +12,8 @@ type UUID struct {
 	Bytes  []byte
 }
 
-// NewUUID generate UUID
-func NewUUID() UUID {
-	var uuid UUID
+// NewUUID generates a new UUID
+func NewUUID() (*UUID, error) {
 	// Generate UUID v4
 	// Algorithm according to RFC 4122
 	/*
@@ -41,30 +40,25 @@ func NewUUID() UUID {
 	// set bits 6 and 7 to 0 and 1 (bit 6 is already 0)
 	//	var n uint
 	//var pos uint
-	var block byte
-	var bit6 byte
-	block = 0x01
-	bit6 = 0xfb
+	var block byte = 0x01
+	var bit6 byte = 0xfb
 
 	// config for bits 12,13,14,15 (time_hi_and_version) = 0100 in binary (0x4)
 	// bits 9 - 16 are in raw[1]
 	// we require these 0 bits
 	// xxx0x00x -> this means value &= 11101001   (E9 in Hex)
-	var thav0 byte
-	thav0 = 0xe9
+	var thav0 byte = 0xe9
 
 	// we require this 1 bit
 	// xxxx1xxx -> this means value |= 00001000 ... (8 in Hex)
-	var thav1 byte
-	thav1 = 0x8
+	var thav1 byte = 0x8
 
 	// Read random numbers and fill in byte
 	_, err := rand.Read(raw)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	//pos = 8
-	var s string
 	raw[0] |= block
 	raw[0] &= bit6
 	raw[1] &= thav0
@@ -81,8 +75,7 @@ func NewUUID() UUID {
 	parts = append(parts, hex.EncodeToString(raw[8:10]))
 	parts = append(parts, "-")
 	parts = append(parts, hex.EncodeToString(raw[10:16]))
-	s = strings.Join(parts, "")
-	uuid.Bytes = raw
-	uuid.String = s
-	return uuid
+	s := strings.Join(parts, "")
+
+	return &UUID{Bytes: raw, String: s}, nil
 }
